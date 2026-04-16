@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://192.168.1.8:5000/api';
+const API_BASE = 'https://greenledger-production-9c15.up.railway.app/api';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -21,6 +21,8 @@ export const ApiService = {
   getAlerts: (farmId: string) => api.get(`/sensors/alerts?farm_id=${farmId}`),
   resolveAlert: (alertId: string) => api.patch(`/sensors/alerts/${alertId}/resolve`),
   getCredits: (farmId: string) => api.get(`/credits/?farm_id=${farmId}`),
+  confirmReceipt: (creditId: string) => api.patch(`/credits/${creditId}/confirm-receipt`),
+  disputePayment: (creditId: string, reason: string) => api.patch(`/credits/${creditId}/dispute-payment`, { reason }),
   getSeasons: (farmId: string) => api.get(`/seasons/farm/${farmId}`),
   getActiveSeason: (farmId: string) => api.get(`/seasons/farm/${farmId}/active`),
   createSeason: (data: any) => api.post('/seasons/', data),

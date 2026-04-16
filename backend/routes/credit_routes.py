@@ -130,10 +130,40 @@ def mark_paid(cid):
             "payment_status": "paid",
             "payment_completed_on": datetime.now(timezone.utc),
             "transaction_id": d.get("transaction_id", f"TXN{cid}"),
+            "farmer_confirmed": False,
+            "payment_disputed": False,
         }}
     )
     log_action("mark_paid", {"credit_id": cid})
     return jsonify({"status": "paid"})
+
+@credit_bp.route("/<cid>/confirm-receipt", methods=["PATCH"])
+def confirm_receipt(cid):
+    mongo.db.carbon_credits.update_one(
+        {"credit_id": cid},
+        {"$set": {
+            "farmer_confirmed": True,
+            "farmer_confirmed_on": datetime.now(timezone.utc),
+            "payment_disputed": False,
+        }}
+    )
+    log_action("farmer_confirmed_payment", {"credit_id": cid})
+    return jsonify({"status": "confirmed"})
+
+@credit_bp.route("/<cid>/dispute-payment", methods=["PATCH"])
+def dispute_payment(cid):
+    d = request.get_json(force=True) or {}
+    mongo.db.carbon_credits.update_one(
+        {"credit_id": cid},
+        {"$set": {
+            "payment_disputed": True,
+            "dispute_reason": d.get("reason", "Payment not received"),
+            "disputed_on": datetime.now(timezone.utc),
+            "farmer_confirmed": False,
+        }}
+    )
+    log_action("payment_disputed", {"credit_id": cid, "reason": d.get("reason")})
+    return jsonify({"status": "disputed"})
 
 @credit_bp.route("/farmer-summary/<farm_id>", methods=["GET"])
 def farmer_summary(farm_id):

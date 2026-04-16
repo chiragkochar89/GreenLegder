@@ -350,7 +350,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 </div>
 <script>
 /* ─── Config ─── */
-const API = 'http://127.0.0.1:5000/api';
+const API = 'https://greenledger-production-9c15.up.railway.app/api';
 
 const MONTHS=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 const COLORS=['#66bb6a','#42a5f5','#26c6da','#ffca28','#ef5350','#ab47bc','#ff7043','#26a69a','#ec407a'];
@@ -667,7 +667,11 @@ async function loadCredits(filter='all'){
 
     // Payment status badge
     let payBadge='<span style="color:var(--tx3);font-size:11px">—</span>';
-    if(c.payment_status==='paid') payBadge='<span class="badge bg">Paid</span>';
+    if(c.payment_disputed) payBadge='<span class="badge br">⚠ Disputed</span>';
+else if(c.farmer_confirmed) payBadge='<span class="badge bg">✓ Confirmed</span>';
+else if(c.payment_status==='paid') payBadge='<span class="badge ba">Paid — Pending Confirmation</span>';
+else if(c.payment_status==='initiated') payBadge='<span class="badge ba">Processing</span>';
+else if(c.status==='verified') payBadge='<span class="badge bb">Unpaid</span>';
     else if(c.payment_status==='initiated') payBadge='<span class="badge ba">Processing</span>';
     else if(c.status==='verified') payBadge='<span class="badge bb">Unpaid</span>';
 
