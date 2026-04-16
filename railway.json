@@ -1,8 +1,7 @@
 {
   "$schema": "https://schema.railway.app/railway-schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "pip3 install -r backend/requirements.txt"
+    "builder": "NIXPACKS"
   },
   "deploy": {
     "startCommand": "cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2",
