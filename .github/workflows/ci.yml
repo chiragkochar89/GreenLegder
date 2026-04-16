@@ -1,0 +1,40 @@
+name: GreenLedger CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Train AI model
+        run: |
+          cd backend
+          python model/train_model.py
+
+      - name: Check model files exist
+        run: |
+          ls backend/model/carbon_model.pkl
+          ls backend/model/scaler.pkl
+          echo "Model files OK"
+
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          cd backend
+          flake8 . --max-line-length=120 --exclude=__pycache__ || true

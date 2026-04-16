@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: greenledger-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: greenledger
+
+  backend:
+    build: ./backend
+    container_name: greenledger-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/greenledger
+      FLASK_ENV: production
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "python model/train_model.py &&
+             python seed_db.py &&
+             python app.py"
+
+  frontend:
+    image: nginx:alpine
+    container_name: greenledger-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
