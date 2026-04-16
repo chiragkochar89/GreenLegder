@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "farmer-app",
+    "name": "GreenLedger",
     "slug": "farmer-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0f1f0f"
     },
     "ios": {
       "supportsTablet": true
@@ -18,15 +18,21 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0f1f0f"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.greenledger.farmer"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "286c8682-30d2-48d5-ae64-cc6fbd8aa660"
+      }
+    }
   }
 }

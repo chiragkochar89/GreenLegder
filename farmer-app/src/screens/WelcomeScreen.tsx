@@ -61,7 +61,14 @@ export default function WelcomeScreen({ navigation }: any) {
         {/* Logo */}
         <View style={s.logoWrap}>
           <View style={s.logoIcon}>
-            <Text style={s.logoLeaf}>🌿</Text>
+            {/* Stem */}
+            <View style={s.stem}/>
+            {/* Left leaf */}
+            <View style={s.leafLeft}/>
+            {/* Right leaf */}
+            <View style={s.leafRight}/>
+            {/* Bud */}
+            <View style={s.bud}/>
           </View>
           <Text style={s.logoName}>{t('appName')}</Text>
           <Text style={s.logoSub}>{t('tagline')}</Text>
@@ -112,8 +119,11 @@ const s = StyleSheet.create({
   langBtn:    { alignSelf: 'flex-end', backgroundColor: '#1a2e1a', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1, borderColor: '#2d4a2d' },
   langTxt:    { color: '#4ade80', fontSize: 13, fontWeight: '600' },
   logoWrap:   { alignItems: 'center', marginTop: 32, marginBottom: 40 },
-  logoIcon:   { width: 72, height: 72, backgroundColor: '#16a34a', borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  logoLeaf:   { fontSize: 36 },
+  logoIcon:   { width: 80, height: 80, backgroundColor: '#0f1f0f', borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 14, borderWidth: 1.5, borderColor: '#2d4a2d', overflow: 'hidden' },
+  stem:       { position: 'absolute', width: 4, height: 44, backgroundColor: 'white', borderRadius: 2, bottom: 12, left: 38 },
+  leafLeft:   { position: 'absolute', width: 22, height: 14, backgroundColor: '#4ade80', borderRadius: 12, bottom: 32, left: 16, transform: [{ rotate: '-35deg' }] },
+  leafRight:  { position: 'absolute', width: 22, height: 14, backgroundColor: '#86efac', borderRadius: 12, bottom: 38, left: 42, transform: [{ rotate: '35deg' }] },
+  bud:        { position: 'absolute', width: 14, height: 18, backgroundColor: '#4ade80', borderRadius: 7, top: 12, left: 33 },
   logoName:   { fontSize: 30, fontWeight: '700', color: '#f0fdf4', letterSpacing: -0.5 },
   logoSub:    { fontSize: 14, color: '#86efac', marginTop: 4 },
   card:       { backgroundColor: '#1a2e1a', borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#2d4a2d', marginBottom: 20 },
