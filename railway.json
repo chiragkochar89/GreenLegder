@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --workers 2",
+    "startCommand": "cd backend && python app.py",
     "restartPolicyType": "ON_FAILURE"
   }
 }
