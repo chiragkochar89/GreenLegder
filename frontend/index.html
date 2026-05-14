@@ -118,6 +118,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 </head>
 <body>
 <div class="app">
+
 <aside class="sb">
   <div class="logo">
     <div class="logo-mark">
@@ -142,6 +143,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
     <div class="spill"><div class="sdot" id="apiDot"></div><span id="apiStatus">Connecting…</span></div>
   </div>
 </aside>
+
 <main class="main">
   <div class="topbar">
     <div><div class="pt" id="pageTitle">Dashboard</div><div class="ps" id="pageSub">Overview of all farm carbon activity</div></div>
@@ -150,7 +152,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
       <button class="btn btnp" onclick="refresh()">&#8635; Refresh</button>
     </div>
   </div>
+
   <div class="content">
+
     <!-- DASHBOARD -->
     <section id="page-dashboard" class="page active">
       <div class="mgrid">
@@ -168,6 +172,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         <div class="card"><div class="ch"><div class="ct">Practice breakdown</div></div><div class="cw"><canvas id="c-practice"></canvas></div></div>
       </div>
     </section>
+
     <!-- SENSORS -->
     <section id="page-sensors" class="page">
       <div class="g2">
@@ -175,23 +180,62 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
           <div class="ch"><div><div class="ct">Live sensor readings</div><div class="csub">ESP32 NodeMCU · latest per farm</div></div><div class="liveb"><span class="sdot"></span> Live</div></div>
           <div class="sgrid" id="live-sensors"><div style="color:var(--tx2);font-size:13px;grid-column:1/-1">Loading sensor data…</div></div>
         </div>
-        <div class="card"><div class="ch"><div class="ct">Soil moisture trend — F-01 (48 h)</div></div><div class="cw"><canvas id="c-moist"></canvas></div></div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct" id="trend-title">Soil moisture trend (48 h)</div><div class="csub">Select farm below</div></div>
+            <select id="farm-trend-select" onchange="loadTrend(this.value)" style="background:var(--bg3);color:var(--tx);border:1px solid var(--br2);border-radius:6px;padding:4px 10px;font-size:12px;font-family:var(--fn)"><option>Loading…</option></select>
+          </div>
+          <div class="cw"><canvas id="c-moist"></canvas></div>
+        </div>
       </div>
       <div class="card"><div class="ch"><div class="ct">All sensor nodes</div></div>
         <div class="tw"><table>
-          <thead><tr><th>Farm</th><th>Farmer</th><th>Device</th><th>Moisture</th><th>Temp °C</th><th>Humidity</th><th>pH</th><th>Status</th><th>Last seen</th></tr></thead>
+          <thead><tr><th>Farm</th><th>Farmer</th><th>Device</th><th>Moisture</th><th>Temp °C</th><th>Humidity</th><th>pH</th><th>Status</th><th>Last seen (IST)</th></tr></thead>
           <tbody id="s-table"></tbody>
         </table></div>
       </div>
     </section>
+
     <!-- SATELLITE -->
     <section id="page-satellite" class="page">
+
+      <!-- NDVI UPDATE PANEL -->
+      <div class="card" style="margin-bottom:13px">
+        <div class="ch">
+          <div>
+            <div class="ct">Update NDVI for a farm</div>
+            <div class="csub">Enter latest Sentinel-2 satellite reading · manually sourced</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="fg" style="margin:0;flex:1;min-width:150px">
+            <label>Farm</label>
+            <select id="ndvi-farm-select" style="width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--br2);border-radius:var(--r);color:var(--tx);font-family:var(--fn);font-size:13px;outline:none">
+              <option value="">— select farm —</option>
+            </select>
+          </div>
+          <div class="fg" style="margin:0;flex:1;min-width:150px">
+            <label>NDVI Value (0.00 – 1.00)</label>
+            <input id="ndvi-val-input" type="number" step="0.01" min="0" max="1" placeholder="e.g. 0.67"
+              style="width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--br2);border-radius:var(--r);color:var(--tx);font-family:var(--fn);font-size:13px;outline:none">
+          </div>
+          <button class="btn btnp" onclick="submitNdvi()" style="padding:8px 18px;white-space:nowrap;margin-bottom:13px">Update NDVI</button>
+          <div id="ndvi-update-msg" style="font-size:12px;min-width:140px;padding-bottom:13px;align-self:flex-end"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="ch"><div><div class="ct">NDVI vegetation index — all farms</div><div class="csub">Normalised Difference Vegetation Index · Sentinel-2 via Google Earth Engine</div></div><span class="badge bt">Live sync</span></div>
         <div class="ngrid" id="ndvi-grid"></div>
       </div>
       <div class="g2">
-        <div class="card"><div class="ch"><div class="ct">NDVI 12-month trend — <span id="ndvi-trend-farm">F-01</span></div><div style="display:flex;gap:6px;flex-wrap:wrap" id="ndvi-farm-btns"></div></div><div class="cw"><canvas id="c-ndvi"></canvas></div></div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ct">NDVI 12-month trend — <span id="ndvi-trend-farm">select a farm</span></div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap" id="ndvi-farm-btns"></div>
+          </div>
+          <div class="cw"><canvas id="c-ndvi"></canvas></div>
+        </div>
         <div class="card"><div class="ch"><div class="ct">NDVI interpretation</div></div>
           <table><thead><tr><th>Range</th><th>Health</th><th>Carbon potential</th></tr></thead><tbody>
             <tr><td><span class="badge br">0.0–0.2</span></td><td>Bare soil</td><td>Very low</td></tr>
@@ -203,11 +247,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         </div>
       </div>
     </section>
+
     <!-- AI -->
     <section id="page-ai" class="page">
       <div class="g2">
         <div class="card">
-          <div class="ch"><div><div class="ct">Carbon estimation model</div><div class="csub">Gradient Boosting · adjust inputs to estimate CO₂</div></div></div>
+          <div class="ch">
+            <div>
+              <div class="ct">Carbon estimation model</div>
+              <div class="csub">Gradient Boosting · select a farm to auto-fill from real data</div>
+            </div>
+            <select id="ai-farm-select" onchange="loadFarmIntoSliders(this.value)"
+              style="background:var(--bg3);color:var(--tx);border:1px solid var(--br2);border-radius:6px;padding:5px 10px;font-size:12px;font-family:var(--fn)">
+              <option value="">— select farm —</option>
+            </select>
+          </div>
+          <div id="ai-farm-info" style="display:none;background:var(--bg3);border:1px solid var(--br);border-radius:var(--r);padding:10px 13px;margin-bottom:12px;font-size:12px">
+            <span id="ai-farm-label" style="color:var(--g4);font-weight:600"></span>
+            <span id="ai-farm-meta" style="color:var(--tx2);margin-left:8px"></span>
+            <span id="ai-sensor-info" style="color:var(--t4);margin-left:8px"></span>
+          </div>
           <div class="prow"><span class="plbl">NDVI value</span><input type="range" id="sl-ndvi" min="0" max="100" value="67" step="1" oninput="calcEst()"><span class="pval" id="pv-ndvi">0.67</span></div>
           <div class="prow"><span class="plbl">Area (hectares)</span><input type="range" id="sl-area" min="1" max="20" value="5" step="1" oninput="calcEst()"><span class="pval" id="pv-area">5 ha</span></div>
           <div class="prow"><span class="plbl">Soil organic carbon %</span><input type="range" id="sl-soc" min="5" max="50" value="22" step="1" oninput="calcEst()"><span class="pval" id="pv-soc">2.2%</span></div>
@@ -222,8 +281,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
             <div class="el">Estimated CO₂ sequestered</div>
             <div class="ev" id="est-co2">— tons</div>
             <div class="es">Credits eligible: <strong id="est-cr" style="color:var(--g4)">—</strong></div>
-            <div class="fb">CO₂ = f(NDVI, area, SOC, temp, moisture, months, practice, soil_type, irrigation, season, practice_years)<br>Model: Gradient Boosting · 200 trees · R² = 0.9749 · MAE = 1.309t<br>1 credit = 1 tonne CO₂ removed</div>
-            <button class="btn btnp" style="margin-top:11px;width:100%" onclick="issueEst()">Issue Credit from Estimate ↗</button>
+            <div class="fb">CO₂ = f(NDVI, area, SOC, practice, months) · sliders auto-filled from farm record<br>Model: Gradient Boosting · 200 trees · R² = 0.9749 · MAE = 1.309t<br>1 credit = 1 tonne CO₂ removed</div>
+            <button class="btn btnp" style="margin-top:11px;width:100%" onclick="issueEst()">Issue Credit for Selected Farm ↗</button>
           </div>
         </div>
         <div class="card"><div class="ch"><div class="ct">Farm-wise AI estimates</div></div>
@@ -234,6 +293,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         </div>
       </div>
     </section>
+
     <!-- FARMERS -->
     <section id="page-farmers" class="page">
       <div class="ch" style="margin-bottom:12px">
@@ -257,6 +317,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         </div>
       </div>
     </section>
+
     <!-- CREDITS -->
     <section id="page-credits" class="page">
       <div class="mgrid">
@@ -264,7 +325,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         <div class="mc am"><div class="ml">Pending</div><div class="mv" id="cr-pend">—</div><div class="mch">Awaiting verify</div></div>
         <div class="mc tl"><div class="ml">Market Value</div><div class="mv" id="cr-val">—</div><div class="mch">@ ₹500/credit</div></div>
         <div class="mc bl"><div class="ml">CO₂ Verified (t)</div><div class="mv" id="cr-co2">—</div><div class="mch">All time</div></div>
-        <div class="mc" style="border-top:2px solid var(--r4)"><div class="ml">Disputed</div><div class="mv" id="cr-disp" style="color:var(--r4)">0</div><div class="mch">Needs attention</div></div>
       </div>
       <div class="card">
         <div class="ch"><div class="ct">Credit ledger</div>
@@ -282,6 +342,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         </table></div>
       </div>
     </section>
+
     <!-- REGISTRATIONS -->
     <section id="page-registrations" class="page">
       <div class="card">
@@ -296,12 +357,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
         <div id="reg-list"><div style="color:var(--tx2);font-size:13px;padding:16px 0">Loading…</div></div>
       </div>
     </section>
+
     <!-- REGISTER -->
     <section id="page-register" class="page">
       <div class="card" style="max-width:580px">
         <div class="ch"><div class="ct">Register new farm</div></div>
         <form onsubmit="submitFarm(event)">
-          <div class="fg"><label>Farm ID</label><input id="r-fid" placeholder="e.g. F-12" required></div>
+          <div class="fg"><label>Farm ID</label><input id="r-fid" placeholder="e.g. F-10" required></div>
           <div class="fg"><label>Farmer Name</label><input id="r-name" placeholder="Full name" required></div>
           <div class="fg"><label>Location / Village</label><input id="r-loc" placeholder="e.g. Pune" required></div>
           <div class="fg"><label>District</label><input id="r-dist" placeholder="e.g. Pune"></div>
@@ -312,22 +374,24 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
           </div>
           <div class="fg"><label>Soil Organic Carbon %</label><input id="r-soc" type="number" step="0.1" min="0.1" value="1.5"></div>
           <div class="fg"><label>Initial NDVI (0–1)</label><input id="r-ndvi" type="number" step="0.01" min="0" max="1" value="0.50"></div>
-          <div class="fg"><label>Device ID</label><input id="r-dev" placeholder="e.g. GL-F12"></div>
+          <div class="fg"><label>ESP32 Device ID</label><input id="r-dev" placeholder="e.g. GL-F13"></div>
           <div id="r-msg" style="font-size:13px;margin:8px 0;min-height:18px"></div>
           <button type="submit" class="btn btnp" style="width:100%">Register Farm</button>
         </form>
       </div>
     </section>
+
   </div>
 </main>
 </div>
 <script>
+/* ─── Config ─── */
 const API='https://greenledger-production-9c15.up.railway.app/api';
 const MONTHS=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 const COLORS=['#66bb6a','#42a5f5','#26c6da','#ffca28','#ef5350','#ab47bc','#ff7043','#26a69a','#ec407a'];
 const PAGE_META={
   dashboard:['Dashboard','Overview of all farm carbon activity'],
-  sensors:['IoT Sensors','Live ESP32 sensor readings'],
+  sensors:['IoT Sensors','Live ESP32 NodeMCU readings'],
   satellite:['Satellite NDVI','Vegetation monitoring · Sentinel-2'],
   ai:['AI Estimation','Gradient Boosting · 11 features · R² = 0.9749 · MAE = 1.309t'],
   farmers:['Registered Farmers','All enrolled smallholder farms'],
@@ -336,8 +400,19 @@ const PAGE_META={
   register:['Register Farm','Enrol a new farm onto GreenLedger'],
 };
 let farms=[],credits=[],charts={};
+
+/* ─── Clock ─── */
 setInterval(()=>document.getElementById('clock').textContent=new Date().toTimeString().substr(0,8),1000);
 
+/* ─── IST timestamp helper ─── */
+function toIST(ts){
+  const d=new Date(ts);
+  const ist=new Date(d.getTime()+5.5*60*60*1000);
+  const h=ist.getUTCHours(),m=String(ist.getUTCMinutes()).padStart(2,'0');
+  return`${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
+}
+
+/* ─── API ─── */
 async function api(path,opts={}){
   try{
     const r=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts});
@@ -346,14 +421,16 @@ async function api(path,opts={}){
   }catch(e){console.warn('API',path,e.message);return null;}
 }
 
+/* ─── Health ─── */
 async function checkHealth(){
   const r=await api('/health');
   const dot=document.getElementById('apiDot'),st=document.getElementById('apiStatus');
   if(r&&r.api==='ok'){dot.style.background='var(--g4)';st.textContent='API ok · DB '+r.database;}
-  else{dot.style.background='var(--r4)';st.textContent='API offline';}
+  else{dot.style.background='var(--r4)';st.textContent='API offline — run backend';}
 }
 checkHealth();setInterval(checkHealth,30000);
 
+/* ─── Nav ─── */
 document.querySelectorAll('.ni[data-page]').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
@@ -367,7 +444,6 @@ document.querySelectorAll('.ni[data-page]').forEach(b=>{
     loadPage(p);
   });
 });
-
 function refresh(){loadPage(document.querySelector('.ni.active')?.dataset.page||'dashboard');}
 function loadPage(p){
   ({dashboard:loadDash,sensors:loadSensors,satellite:loadSat,
@@ -376,11 +452,11 @@ function loadPage(p){
 }
 window.addEventListener('load',()=>loadDash());
 
+/* ─── Charts ─── */
 const CO={responsive:true,maintainAspectRatio:false,
   plugins:{legend:{display:false},tooltip:{backgroundColor:'#21262d',borderColor:'rgba(255,255,255,.12)',borderWidth:1,titleColor:'#e6edf3',bodyColor:'#8b949e',padding:10}},
   scales:{x:{ticks:{color:'#8b949e',font:{size:10,family:"'JetBrains Mono'"}},grid:{color:'rgba(255,255,255,.04)'}},
           y:{ticks:{color:'#8b949e',font:{size:10,family:"'JetBrains Mono'"}},grid:{color:'rgba(255,255,255,.04)'}}}};
-
 function mkLine(id,labels,data,color='#4caf50'){
   if(charts[id])charts[id].destroy();
   const el=document.getElementById(id);if(!el)return;
@@ -398,6 +474,7 @@ function mkDonut(id,labels,data,colors){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:'#8b949e',font:{size:11},boxWidth:10,padding:8}},tooltip:CO.plugins.tooltip}}});
 }
 
+/* ─── DASHBOARD ─── */
 async function loadDash(){
   const [f,c,al]=await Promise.all([api('/farms/'),api('/credits/'),api('/sensors/alerts')]);
   if(f){farms=f;document.getElementById('s-farms').textContent=f.length;
@@ -411,41 +488,54 @@ async function loadDash(){
   mkBar('c-cred',MONTHS,[6,7,8,9,10,11,10,12,13,12,14,15],'#26c6da');
   mkDonut('c-practice',['No-till','Cover crops','Organic','Agroforestry'],[38,28,20,14],['#4caf50','#26c6da','#ffca28','#42a5f5']);
 }
-
 function renderAlerts(al){
   const el=document.getElementById('d-alerts');
   const sc={warning:'var(--a4)',critical:'var(--r4)',info:'var(--g4)'};
   if(!al.length){el.innerHTML='<div style="color:var(--tx2);font-size:13px;padding:8px 0">No active alerts.</div>';return;}
-  el.innerHTML=al.slice(0,4).map(a=>`<div class="ai"><div class="adot" style="background:${sc[a.severity]||sc.warning}"></div><div><div class="at">${a.message}</div><div class="am2">Farm ${a.farm_id} · ${a.type} · ${new Date(a.timestamp).toLocaleTimeString()}</div></div></div>`).join('');
+  el.innerHTML=al.slice(0,4).map(a=>`<div class="ai"><div class="adot" style="background:${sc[a.severity]||sc.warning}"></div><div><div class="at">${a.message}</div><div class="am2">Farm ${a.farm_id} · ${a.type} · ${toIST(a.timestamp)}</div></div></div>`).join('');
 }
 
+/* ─── SENSORS ─── */
 async function loadSensors(){
-  const [s,f,h]=await Promise.all([api('/sensors/latest'),api('/farms/'),api('/sensors/history/F-01?limit=48')]);
+  const [s,f]=await Promise.all([api('/sensors/latest'),api('/farms/')]);
   if(f)farms=f;
-  renderLive(s);renderSensorTable(s,f);
-  if(h){const sorted=[...h].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-    mkLine('c-moist',sorted.map(x=>new Date(x.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})),sorted.map(x=>x.soil_moisture),'#42a5f5');}
+  renderLive(s);
+  renderSensorTable(s,f);
+  if(s&&s.length){
+    const sel=document.getElementById('farm-trend-select');
+    if(sel){
+      sel.innerHTML=s.map(x=>`<option value="${x.farm_id}">${x.farm_id} — ${(farms.find(ff=>ff.farm_id===x.farm_id)||{}).farmer_name||''}</option>`).join('');
+      sel.value=s[0].farm_id;
+    }
+    loadTrend(s[0].farm_id);
+  }
 }
-
+async function loadTrend(farmId){
+  document.getElementById('trend-title').textContent=`Soil moisture trend — ${farmId} (48 h)`;
+  const h=await api(`/sensors/history/${farmId}?limit=48`);
+  if(h){
+    const sorted=[...h].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+    mkLine('c-moist',sorted.map(x=>toIST(x.timestamp)),sorted.map(x=>x.soil_moisture),'#42a5f5');
+  }
+}
 function renderLive(s){
   const el=document.getElementById('live-sensors');
   if(!s||!s.length){el.innerHTML='<div style="color:var(--tx2);font-size:13px;grid-column:1/-1">No live data — check ESP32 is sending to POST /api/sensors/data</div>';return;}
-  const r=s[0];
+  const r=s.reduce((latest,x)=>new Date(x.timestamp)>new Date(latest.timestamp)?x:latest,s[0]);
   const m=r.soil_moisture||0,t=r.temperature||0,h=r.humidity||0,ph=r.soil_ph||7;
   el.innerHTML=`
-    <div class="sblk"><div class="sl">Soil moisture</div><div class="sv" style="color:var(--b4)">${m.toFixed(1)}</div><div class="su">%</div><div class="sbt"><div class="sbf" style="width:${m}%;background:var(--b4)"></div></div></div>
-    <div class="sblk"><div class="sl">Temperature</div><div class="sv" style="color:var(--a4)">${parseFloat(t).toFixed(1)}</div><div class="su">°C</div><div class="sbt"><div class="sbf" style="width:${((t-20)/20*100).toFixed(0)}%;background:var(--a4)"></div></div></div>
-    <div class="sblk"><div class="sl">Humidity</div><div class="sv" style="color:var(--t4)">${h.toFixed(1)}</div><div class="su">%</div><div class="sbt"><div class="sbf" style="width:${h}%;background:var(--t4)"></div></div></div>
-    <div class="sblk"><div class="sl">Soil pH</div><div class="sv" style="color:var(--g4)">${parseFloat(ph).toFixed(1)}</div><div class="su">pH</div><div class="sbt"><div class="sbf" style="width:${((ph-4)/6*100).toFixed(0)}%;background:var(--g4)"></div></div></div>`;
+    <div class="sblk"><div class="sl">Soil moisture</div><div class="sv" style="color:var(--b4)">${m.toFixed(1)}</div><div class="su">%</div><div class="sbt"><div class="sbf" style="width:${Math.min(m,100)}%;background:var(--b4)"></div></div></div>
+    <div class="sblk"><div class="sl">Temperature</div><div class="sv" style="color:var(--a4)">${parseFloat(t).toFixed(1)}</div><div class="su">°C</div><div class="sbt"><div class="sbf" style="width:${Math.min(Math.max((t-20)/20*100,0),100).toFixed(0)}%;background:var(--a4)"></div></div></div>
+    <div class="sblk"><div class="sl">Humidity</div><div class="sv" style="color:var(--t4)">${h.toFixed(1)}</div><div class="su">%</div><div class="sbt"><div class="sbf" style="width:${Math.min(h,100)}%;background:var(--t4)"></div></div></div>
+    <div class="sblk"><div class="sl">Soil pH</div><div class="sv" style="color:var(--g4)">${parseFloat(ph).toFixed(1)}</div><div class="su">pH</div><div class="sbt"><div class="sbf" style="width:${Math.min(Math.max((ph-4)/6*100,0),100).toFixed(0)}%;background:var(--g4)"></div></div></div>`;
 }
-
 function renderSensorTable(s,f){
   const tb=document.getElementById('s-table');
   const fm={};(f||[]).forEach(x=>fm[x.farm_id]=x);
   if(!s||!s.length){tb.innerHTML='<tr><td colspan="9" style="color:var(--tx2);text-align:center;padding:16px">No sensor data available</td></tr>';return;}
   tb.innerHTML=s.map(x=>{
     const ff=fm[x.farm_id]||{};const ok=(x.soil_moisture||0)>25;
-    const ts=x.timestamp?new Date(x.timestamp).toLocaleTimeString():'—';
+    const ts=x.timestamp?toIST(x.timestamp):'—';
     return`<tr><td style="font-family:var(--fm)">${x.farm_id}</td><td>${ff.farmer_name||'—'}</td><td style="font-family:var(--fm);color:var(--tx2)">${x.device_id||'—'}</td>
       <td style="font-family:var(--fm);color:${ok?'var(--b4)':'var(--r4)'}">${(x.soil_moisture||0).toFixed(1)}%</td>
       <td style="font-family:var(--fm)">${(x.temperature||0).toFixed(1)}</td>
@@ -456,28 +546,58 @@ function renderSensorTable(s,f){
   }).join('');
 }
 
+/* ─── SATELLITE ─── */
 async function loadSat(){
   if(!farms.length)farms=await api('/farms/')||[];
   renderNdvi(farms);
+
+  // Populate NDVI update dropdown
+  const sel=document.getElementById('ndvi-farm-select');
+  if(sel&&farms.length){
+    sel.innerHTML='<option value="">— select farm —</option>'+
+      farms.map(f=>`<option value="${f.farm_id}">${f.farm_id} — ${f.farmer_name||''}</option>`).join('');
+  }
+
+  // Farm buttons for trend chart
   const btnContainer=document.getElementById('ndvi-farm-btns');
   if(btnContainer){
     btnContainer.innerHTML='';
     farms.forEach(f=>{
       const btn=document.createElement('button');
-      btn.className='btn btnsm';btn.textContent=f.farm_id;btn.title=f.farmer_name;
+      btn.className='btn btnsm';btn.textContent=f.farm_id;btn.title=f.farmer_name||'';
       btn.onclick=()=>loadNdviTrend(f.farm_id,f.farmer_name);
       btnContainer.appendChild(btn);
     });
   }
-  loadNdviTrend('F-01','Ramesh Patil');
+  if(farms.length)loadNdviTrend(farms[0].farm_id,farms[0].farmer_name);
+}
+
+async function submitNdvi(){
+  const farmId=document.getElementById('ndvi-farm-select').value;
+  const ndvi=parseFloat(document.getElementById('ndvi-val-input').value);
+  const msg=document.getElementById('ndvi-update-msg');
+  if(!farmId){msg.style.color='var(--r4)';msg.textContent='Select a farm first';return;}
+  if(isNaN(ndvi)||ndvi<0||ndvi>1){msg.style.color='var(--r4)';msg.textContent='Enter a value between 0 and 1';return;}
+  const r=await api('/farms/'+farmId+'/ndvi',{method:'PATCH',body:JSON.stringify({ndvi})});
+  if(r&&r.status==='updated'){
+    msg.style.color='var(--g4)';
+    msg.textContent=`✓ ${farmId} NDVI updated to ${ndvi.toFixed(2)}`;
+    farms=[];
+    setTimeout(()=>loadSat(),400);
+  }else{
+    msg.style.color='var(--r4)';
+    msg.textContent='Update failed — check API';
+  }
 }
 
 async function loadNdviTrend(farmId,farmerName){
-  document.getElementById('ndvi-trend-farm').textContent=farmId+' — '+farmerName;
+  document.getElementById('ndvi-trend-farm').textContent=farmId+(farmerName?' — '+farmerName:'');
   const h=await api('/farms/'+farmId+'/ndvi/history');
-  if(h){
-    const s=[...h].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-    mkLine('c-ndvi',s.map(x=>new Date(x.timestamp).toLocaleDateString('en-IN',{month:'short',year:'2-digit'})),s.map(x=>x.ndvi),'#26c6da');
+  if(h&&h.length){
+    const sorted=[...h].sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+    mkLine('c-ndvi',sorted.map(x=>new Date(x.timestamp).toLocaleDateString('en-IN',{month:'short',year:'2-digit'})),sorted.map(x=>x.ndvi),'#26c6da');
+  }else{
+    mkLine('c-ndvi',['No data'],[0],'#26c6da');
   }
 }
 
@@ -491,11 +611,17 @@ function renderNdvi(f){
     <div class="ns2">${lbl(x.ndvi||0)}</div></div>`).join('');
 }
 
+/* ─── AI ─── */
 async function loadAI(){
   if(!farms.length)farms=await api('/farms/')||[];
-  renderAiTable(farms);calcEst();
+  renderAiTable(farms);
+  calcEst();
+  const sel=document.getElementById('ai-farm-select');
+  if(sel&&farms.length){
+    sel.innerHTML='<option value="">— select farm —</option>'+
+      farms.map(f=>`<option value="${f.farm_id}">${f.farm_id} — ${f.farmer_name||''}</option>`).join('');
+  }
 }
-
 function calcEst(){
   const ndvi=+document.getElementById('sl-ndvi').value/100;
   const area=+document.getElementById('sl-area').value;
@@ -513,24 +639,86 @@ function calcEst(){
   document.getElementById('est-cr').textContent=cr+' credits (≈ ₹'+(cr*500).toLocaleString('en-IN')+')';
 }
 
+async function loadFarmIntoSliders(farmId){
+  const info=document.getElementById('ai-farm-info');
+  const label=document.getElementById('ai-farm-label');
+  const meta=document.getElementById('ai-farm-meta');
+  const sinfo=document.getElementById('ai-sensor-info');
+  if(!farmId){info.style.display='none';calcEst();return;}
+
+  const farm=await api('/farms/'+farmId);
+  if(!farm||farm.error){info.style.display='none';return;}
+
+  // Fill sliders from farm's registered data
+  document.getElementById('sl-ndvi').value  =Math.round((farm.ndvi||0.50)*100);
+  document.getElementById('sl-area').value  =Math.min(Math.max(Math.round(farm.area_hectares||1),1),20);
+  document.getElementById('sl-soc').value   =Math.min(Math.max(Math.round((farm.soil_organic_carbon||1.5)*10),5),50);
+  document.getElementById('sl-months').value=1;
+  document.getElementById('sl-prac').value  =farm.practice||'conventional';
+
+  // Check real sensor readings
+  const history=await api('/sensors/history/'+farmId+'?limit=2880');
+  let sensorText='No sensor readings yet';
+
+  if(history&&history.length>0){
+    const avgSOC=history.reduce((s,x)=>s+(x.soc_estimated||0),0)/history.length;
+    const avgMoist=history.reduce((s,x)=>s+(x.soil_moisture||0),0)/history.length;
+    sensorText=`${history.length} readings · avg moisture ${avgMoist.toFixed(1)}% · avg SOC ${avgSOC.toFixed(2)}%`;
+    // Use real SOC average if enough readings
+    if(history.length>=100){
+      document.getElementById('sl-soc').value=Math.min(Math.max(Math.round(avgSOC*10),5),50);
+    }
+  }
+
+  info.style.display='block';
+  label.textContent=`${farm.farmer_name} (${farmId})`;
+  meta.textContent=`${farm.area_hectares}ha · ${farm.practice} · ${farm.crop_type}`;
+  sinfo.textContent=`📡 ${sensorText}`;
+  calcEst();
+}
 function renderAiTable(f){
   const tb=document.getElementById('ai-table');
   const bonus={conventional:0,cover_crop:.15,no_till:.30,agroforestry:.30};
   tb.innerHTML=f.map(x=>{
     const b=bonus[x.practice]||0;
-    const co2=((x.ndvi||0)*(x.area_hectares||1)*3.67*.5+(x.soil_organic_carbon||1.5)*(x.area_hectares||1)*.58*.5*.3)*(1+b);
+    // Calculate months since farm was registered
+    const regDate=x.registered_on?new Date(x.registered_on):new Date();
+    const monthsSince=Math.max(1,Math.round((Date.now()-regDate)/1000/60/60/24/30));
+    const months=Math.min(monthsSince,12);
+    const co2=((x.ndvi||0)*(x.area_hectares||1)*3.67*(months/12)+
+               (x.soil_organic_carbon||1.5)*(x.area_hectares||1)*.58*(months/12)*.3)*(1+b);
     const col=(x.ndvi||0)>.6?'var(--g4)':'var(--a4)';
-    return`<tr><td style="font-family:var(--fm)">${x.farm_id}</td><td>${x.farmer_name||'—'}</td>
+    // Only show live if a reading came in within last 5 minutes
+    const lastTs=x.latest_sensor&&x.latest_sensor.timestamp
+      ?new Date(x.latest_sensor.timestamp):null;
+    const fiveMinsAgo=Date.now()-5*60*1000;
+    const isLive=lastTs&&lastTs.getTime()>fiveMinsAgo;
+    const hasAnyData=lastTs!==null;
+    const sensorDot=isLive
+      ?'<span style="color:var(--g4);font-size:10px">● live</span>'
+      :hasAnyData
+        ?'<span style="color:var(--a4);font-size:10px">● last seen</span>'
+        :'<span style="color:var(--tx3);font-size:10px">○ no sensor</span>';
+    return`<tr style="cursor:pointer" onclick="selectFarmForEstimate('${x.farm_id}')" title="Click to load into estimator">
+      <td style="font-family:var(--fm)">${x.farm_id}<br>${sensorDot}</td>
+      <td>${x.farmer_name||'—'}</td>
       <td style="font-family:var(--fm);color:${col}">${(x.ndvi||0).toFixed(2)}</td>
       <td style="font-family:var(--fm)">${(x.area_hectares||0).toFixed(1)}</td>
-      <td style="font-family:var(--fm);color:var(--t4)">${co2.toFixed(2)} t</td>
+      <td style="font-family:var(--fm);color:var(--t4)">${co2.toFixed(2)} t<br>
+        <span style="font-size:10px;color:var(--tx2)">${months}mo</span></td>
       <td><span class="badge bg" style="font-family:var(--fm)">${Math.floor(co2)}</span></td></tr>`;
   }).join('');
 }
 
+function selectFarmForEstimate(farmId){
+  const sel=document.getElementById('ai-farm-select');
+  if(sel){sel.value=farmId;loadFarmIntoSliders(farmId);}
+}
 async function issueEst(){
-  const fid=prompt('Enter Farm ID to issue credit for (e.g. F-01):');
-  if(!fid)return;
+  const sel=document.getElementById('ai-farm-select');
+  const farmId=sel?sel.value:'';
+  if(!farmId){alert('Please select a farm from the dropdown first.');return;}
+
   const ndvi=+document.getElementById('sl-ndvi').value/100;
   const area=+document.getElementById('sl-area').value;
   const soc=+document.getElementById('sl-soc').value/10;
@@ -538,15 +726,57 @@ async function issueEst(){
   const prac=document.getElementById('sl-prac').value;
   const bonus={conventional:0,cover_crop:.15,no_till:.30,agroforestry:.30}[prac]||0;
   const co2=((ndvi*area*3.67*months/12)+(soc*area*.58*months/12*.3))*(1+bonus);
-  try{
-    const res=await fetch(API+'/credits/issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({farm_id:fid.trim(),co2_tons:co2,ndvi,months,soc,notes:'Issued via AI estimator'})});
-    const r=await res.json();
-    if(res.ok&&r.credit_id)alert('✓ Credit '+r.credit_id+' issued!\n'+r.credits+' credits · '+r.co2_tons.toFixed(2)+' t CO₂ · ₹'+r.value_inr.toLocaleString('en-IN'));
-    else if(r.blocked)alert('⛔ Credit Blocked\n\n'+r.error+'\n\nThis farm has not sent sufficient sensor data. Minimum 100 readings required in last 30 days.');
-    else alert('Error: '+(r.error||'Could not issue credit'));
-  }catch(e){alert('Network error — check API is running');}
+  const label=document.getElementById('ai-farm-label');
+  const sinfo=document.getElementById('ai-sensor-info');
+
+  const ok=confirm(
+    `Issue credit for: ${label?label.textContent:farmId}
+
+`+
+    `Values used:
+`+
+    `  NDVI:     ${ndvi.toFixed(2)}
+`+
+    `  Area:     ${area} ha
+`+
+    `  SOC:      ${soc.toFixed(1)}%
+`+
+    `  Practice: ${prac}
+`+
+    `  Period:   ${months} month(s)
+`+
+    (sinfo&&sinfo.textContent?`  Sensor:   ${sinfo.textContent}
+`:'')+
+    `
+Estimated CO₂: ${co2.toFixed(2)} tonnes
+`+
+    `Credits: ${Math.floor(co2)}  |  Value: ₹${(Math.floor(co2)*500).toLocaleString('en-IN')}
+
+`+
+    `Confirm issue?`
+  );
+  if(!ok)return;
+
+  const r=await api('/credits/issue',{
+    method:'POST',
+    body:JSON.stringify({
+      farm_id:farmId,co2_tons:co2,ndvi,soc,
+      notes:`AI estimator · NDVI=${ndvi.toFixed(2)}, area=${area}ha, SOC=${soc.toFixed(1)}%, ${months}mo`
+    })
+  });
+  if(r&&r.credit_id)
+    alert(`✅ Credit ${r.credit_id} issued!
+
+${r.credits} credits · ${r.co2_tons.toFixed(2)} t CO₂ · ₹${r.value_inr.toLocaleString('en-IN')}`);
+  else if(r&&r.blocked)
+    alert(`⛔ Blocked
+
+${r.error}`);
+  else
+    alert('Could not issue — check API is running.');
 }
 
+/* ─── FARMERS ─── */
 let farmerView='grid';
 function setFarmerView(v){
   farmerView=v;
@@ -558,7 +788,6 @@ function setFarmerView(v){
   document.getElementById('view-map-btn').style.borderColor=v==='map'?'var(--g4)':'';
   if(v==='map')renderMapPins();
 }
-
 function renderMapPins(){
   const el=document.getElementById('map-pins');
   if(!farms.length){el.innerHTML='<div style="color:var(--tx3)">No farms loaded</div>';return;}
@@ -574,7 +803,6 @@ function renderMapPins(){
       <div style="font-size:10px;color:var(--tx3);margin-top:4px">📍 ${(f.latitude||0).toFixed(4)}, ${(f.longitude||0).toFixed(4)}</div>
     </div>`).join('');
 }
-
 async function loadFarmers(){
   farms=await api('/farms/')||[];
   const el=document.getElementById('farmer-grid');
@@ -596,6 +824,7 @@ async function loadFarmers(){
   }).join('');
 }
 
+/* ─── CREDITS ─── */
 async function loadCredits(filter='all'){
   const url=filter==='all'?'/credits/':'/credits/?status='+filter;
   const [c,s]=await Promise.all([api(url),api('/credits/summary')]);
@@ -608,25 +837,19 @@ async function loadCredits(filter='all'){
     document.getElementById('cr-val').textContent='₹'+(val/1000).toFixed(1)+'k';
     document.getElementById('cr-co2').textContent=co2.toFixed(1);
   }
-  const disp=(credits||[]).filter(c=>c.payment_disputed).length;
-  document.getElementById('cr-disp').textContent=disp;
-
   const tb=document.getElementById('cr-table');
   if(!credits.length){tb.innerHTML='<tr><td colspan="10" style="color:var(--tx2);text-align:center;padding:16px">No credits found</td></tr>';return;}
   tb.innerHTML=credits.map(c=>{
     const cls=c.status==='verified'?'bg':c.status==='pending'?'ba':'br';
     const dt=c.issued_on?new Date(c.issued_on).toLocaleDateString('en-IN'):'—';
     let payBadge='<span style="color:var(--tx3);font-size:11px">—</span>';
-    if(c.payment_disputed) payBadge='<span class="badge br">⚠ Disputed</span>';
-    else if(c.farmer_confirmed) payBadge='<span class="badge bg">✓ Confirmed</span>';
-    else if(c.payment_status==='paid') payBadge='<span class="badge ba">Paid — Awaiting Confirmation</span>';
-    else if(c.payment_status==='initiated') payBadge='<span class="badge ba">Processing</span>';
-    else if(c.status==='verified') payBadge='<span class="badge bb">Unpaid</span>';
+    if(c.payment_status==='paid')payBadge='<span class="badge bg">Paid</span>';
+    else if(c.payment_status==='initiated')payBadge='<span class="badge ba">Processing</span>';
+    else if(c.status==='verified')payBadge='<span class="badge bb">Unpaid</span>';
     let act='—';
-    if(c.status==='pending') act=`<button class="btn btnsm btnp" onclick="verifyCr('${c.credit_id}')">Verify</button>`;
-    else if(c.status==='verified'&&!c.payment_status) act=`<button class="btn btnsm" style="color:var(--g4);border-color:var(--g4)" onclick="initiatePayment('${c.credit_id}')">Pay ₹${(c.value_inr||0).toLocaleString('en-IN')}</button>`;
-    else if(c.payment_status==='initiated') act=`<button class="btn btnsm" style="color:var(--a4);border-color:var(--a4)" onclick="markPaid('${c.credit_id}')">Mark Paid</button>`;
-    else if(c.payment_disputed) act=`<button class="btn btnsm" style="color:var(--r4);border-color:var(--r4)" onclick="resolveDispute('${c.credit_id}')">Resolve Dispute</button>`;
+    if(c.status==='pending')act=`<button class="btn btnsm btnp" onclick="verifyCr('${c.credit_id}')">Verify</button>`;
+    else if(c.status==='verified'&&!c.payment_status)act=`<button class="btn btnsm" style="color:var(--g4);border-color:var(--g4)" onclick="initiatePayment('${c.credit_id}')">Pay ₹${(c.value_inr||0).toLocaleString('en-IN')}</button>`;
+    else if(c.payment_status==='initiated')act=`<button class="btn btnsm" style="color:var(--a4);border-color:var(--a4)" onclick="markPaid('${c.credit_id}')">Mark Paid</button>`;
     return`<tr>
       <td style="font-family:var(--fm);color:var(--tx2)">${c.credit_id}</td>
       <td style="font-family:var(--fm)">${c.farm_id}</td>
@@ -640,47 +863,35 @@ async function loadCredits(filter='all'){
       <td>${act}</td></tr>`;
   }).join('');
 }
-
 async function verifyCr(id){
   await api('/credits/'+id+'/verify',{method:'PATCH'});loadCredits('all');
 }
-
 async function initiatePayment(id){
   const r=await api('/credits/'+id+'/initiate-payment',{method:'PATCH'});
   if(r&&r.status==='payment_initiated'){
     const bank=r.bank_details||{};
-    const bankInfo=bank.upi_id?'UPI: '+bank.upi_id:bank.account_no?'Bank: ****'+bank.account_no.slice(-4)+' · IFSC: '+bank.ifsc:'No bank details on file';
-    alert('Payment Initiated ✓\n\nCredit: '+id+'\nFarmer: '+r.farmer+'\nAmount: ₹'+(r.amount||0).toLocaleString('en-IN')+'\n\nPayment Method:\n'+bankInfo+'\n\nNote: '+r.note);
+    const bankInfo=bank.upi_id?`UPI: ${bank.upi_id}`:bank.account_no?`Bank: ****${bank.account_no.slice(-4)} · IFSC: ${bank.ifsc}`:'No bank details on file';
+    alert(`Payment Initiated ✓\n\nCredit: ${id}\nFarmer: ${r.farmer}\nAmount: ₹${(r.amount||0).toLocaleString('en-IN')}\n\nPayment Method:\n${bankInfo}\n\nRef: ${r.note}`);
     loadCredits('all');
   }else{alert((r&&r.error)||'Payment initiation failed');}
 }
-
 async function markPaid(id){
   const txn=prompt('Enter transaction ID (or leave blank for auto):')||'';
   await api('/credits/'+id+'/mark-paid',{method:'PATCH',body:JSON.stringify({transaction_id:txn})});
   loadCredits('all');
 }
-
-async function resolveDispute(id){
-  const note=prompt('Resolution note (e.g. Payment resent via NEFT):');
-  if(!note)return;
-  await api('/credits/'+id+'/mark-paid',{method:'PATCH',body:JSON.stringify({transaction_id:'RESOLVED-'+Date.now()})});
-  loadCredits('all');
-  alert('Dispute resolved. Farmer will be notified to confirm receipt.');
-}
-
 function exportCreditsCSV(){
   if(!credits.length){alert('No credits to export');return;}
-  const headers=['Credit ID','Farm ID','Farmer','CO2 Tons','Credits','Value INR','Status','Payment Status','Farmer Confirmed','Disputed','Date'];
-  const rows=credits.map(c=>[c.credit_id,c.farm_id,c.farmer_name||'',(c.co2_tons||0).toFixed(2),c.credits||0,c.value_inr||0,c.status,c.payment_status||'unpaid',c.farmer_confirmed?'Yes':'No',c.payment_disputed?'Yes':'No',c.issued_on?new Date(c.issued_on).toLocaleDateString('en-IN'):'']);
+  const headers=['Credit ID','Farm ID','Farmer','CO2 Tons','Credits','Value INR','Status','Payment Status','Date'];
+  const rows=credits.map(c=>[c.credit_id,c.farm_id,c.farmer_name||'',(c.co2_tons||0).toFixed(2),c.credits||0,c.value_inr||0,c.status,c.payment_status||'unpaid',c.issued_on?new Date(c.issued_on).toLocaleDateString('en-IN'):'']);
   const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='greenledger-credits-'+new Date().toISOString().slice(0,10)+'.csv';
+  const a=document.createElement('a');a.href=url;a.download=`greenledger-credits-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();URL.revokeObjectURL(url);
 }
 
+/* ─── REGISTRATIONS ─── */
 async function loadRegistrations(status='pending'){
   const el=document.getElementById('reg-list');
   el.innerHTML='<div style="color:var(--tx2);font-size:13px;padding:16px 0">Loading…</div>';
@@ -688,11 +899,11 @@ async function loadRegistrations(status='pending'){
   const badge=document.getElementById('regCount');
   const pending=await api('/register/applications?status=pending');
   if(badge&&pending)badge.textContent=pending.length||0;
-  if(!data||!data.length){el.innerHTML='<div style="color:var(--tx2);font-size:13px;padding:16px 0">No '+status+' applications.</div>';return;}
+  if(!data||!data.length){el.innerHTML=`<div style="color:var(--tx2);font-size:13px;padding:16px 0">No ${status} applications.</div>`;return;}
   el.innerHTML=data.map(a=>{
     const dt=a.applied_on?new Date(a.applied_on).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
     const docs=a.documents||{};
-    const imgUrl=(field)=>docs[field]?'https://greenledger-production-9c15.up.railway.app/'+docs[field]:'';
+    const imgUrl=(field)=>docs[field]?`https://greenledger-production-9c15.up.railway.app/${docs[field]}`:'';
     const actions=a.status==='pending'?`
       <button class="btn btnsm btnp" onclick="approveReg('${a.application_id}',${a.phone_verified})">✓ Approve</button>
       <button class="btn btnsm" style="color:var(--r4);border-color:var(--r4)" onclick="rejectReg('${a.application_id}')">✗ Reject</button>`
@@ -717,26 +928,20 @@ async function loadRegistrations(status='pending'){
     </div>`;
   }).join('');
 }
-
 async function approveReg(appId,phoneVerified){
-  if(!phoneVerified){
-    const proceed=confirm('⚠️ Warning\n\nThis farmer\'s phone number is NOT verified.\n\nIn production, phone verification via OTP is mandatory before approval.\n\nFor demo purposes, do you want to proceed anyway?');
-    if(!proceed)return;
-  }
+  if(!phoneVerified){const proceed=confirm('⚠️ Warning\n\nThis farmer\'s phone number is NOT verified.\n\nFor demo purposes, do you want to proceed anyway?');if(!proceed)return;}
   const r=await api('/register/applications/'+appId+'/approve',{method:'PATCH'});
-  if(r&&r.status==='approved'){
-    alert('✓ Approved! Farm ID: '+r.farm_id+'\nDevice Token: '+r.device_token+'\n\nSave the device token — it goes in the ESP32 firmware.');
-    loadRegistrations('pending');
-  }else{alert('Approval failed — check API');}
+  if(r&&r.status==='approved'){alert('✓ Approved! Farm ID: '+r.farm_id+'\nDevice Token: '+r.device_token+'\n\nSave the device token — it goes in the ESP32 firmware.');loadRegistrations('pending');}
+  else{alert('Approval failed — check API');}
 }
-
 async function rejectReg(appId){
-  const reason=prompt('Reason for rejection:');
+  const reason=prompt('Reason for rejection (optional):');
   if(reason===null)return;
-  await api('/register/applications/'+appId+'/reject',{method:'PATCH',body:JSON.stringify({reason:reason||'Documents could not be verified'})});
+  await api('/register/applications/'+appId+'/reject',{method:'PATCH',body:JSON.stringify({reason:reason||''})});
   loadRegistrations('pending');
 }
 
+/* ─── REGISTER ─── */
 async function submitFarm(e){
   e.preventDefault();
   const msg=document.getElementById('r-msg');
@@ -746,7 +951,7 @@ async function submitFarm(e){
     practice:document.getElementById('r-prac').value,soil_organic_carbon:document.getElementById('r-soc').value,
     ndvi:document.getElementById('r-ndvi').value,device_id:document.getElementById('r-dev').value.trim()};
   const r=await api('/farms/',{method:'POST',body:JSON.stringify(d)});
-  if(r&&r.status==='registered'){msg.style.color='var(--g4)';msg.textContent='Farm '+d.farm_id+' registered!';farms=[];}
+  if(r&&r.status==='registered'){msg.style.color='var(--g4)';msg.textContent=`Farm ${d.farm_id} registered!`;farms=[];}
   else{msg.style.color='var(--r4)';msg.textContent=(r&&r.error)||'Failed — check API is running.';}
 }
 </script>

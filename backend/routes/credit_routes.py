@@ -3,28 +3,28 @@ from datetime import datetime, timezone, timedelta
 from extensions import mongo
 from config import SENSOR_INACTIVE_DAYS
 import math
-
+ 
 credit_bp = Blueprint("credits", __name__)
-
+ 
 def _ser(doc):
     doc["_id"] = str(doc["_id"])
     for k in ["issued_on", "verified_on"]:
         if doc.get(k): doc[k] = doc[k].isoformat()
     return doc
-
+ 
 def log_action(action, details, admin="admin"):
     mongo.db.audit_log.insert_one({
         "action": action, "details": details,
         "admin": admin, "timestamp": datetime.now(timezone.utc),
     })
-
+ 
 @credit_bp.route("/", methods=["GET"])
 def list_credits():
     q = {}
     if request.args.get("status"): q["status"] = request.args["status"]
     if request.args.get("farm_id"): q["farm_id"] = request.args["farm_id"]
     return jsonify([_ser(d) for d in mongo.db.carbon_credits.find(q).sort("issued_on", -1).limit(200)])
-
+ 
 @credit_bp.route("/summary", methods=["GET"])
 def summary():
     pipeline = [{"$group": {
@@ -35,39 +35,75 @@ def summary():
         "count":         {"$sum": 1},
     }}]
     return jsonify(list(mongo.db.carbon_credits.aggregate(pipeline)))
-
+ 
 @credit_bp.route("/issue", methods=["POST"])
 def issue():
     d = request.get_json(force=True)
     for f in ["farm_id", "co2_tons"]:
         if f not in d:
             return jsonify({"error": f"Missing: {f}"}), 400
-
+ 
     farm = mongo.db.farms.find_one({"farm_id": d["farm_id"]})
     if not farm:
         return jsonify({"error": "Farm not found"}), 404
-
-    # Block if sensor inactive
-    cutoff = datetime.now(timezone.utc) - timedelta(days=SENSOR_INACTIVE_DAYS)
-    recent_count = mongo.db.sensor_readings.count_documents({
-        "farm_id":   d["farm_id"],
-        "timestamp": {"$gte": cutoff}
-    })
-    if recent_count < 100:
-        return jsonify({
-            "error": f"Cannot issue credit — insufficient sensor data. Found {recent_count} readings in last {SENSOR_INACTIVE_DAYS} days. Minimum 100 required.",
-            "blocked": True,
-            "readings_found": recent_count,
-            "readings_required": 100
-        }), 400
+ 
+    # ── FIND LAST CREDIT FOR THIS FARM ──────────────────────────
+    # Only count sensor readings AFTER the last credit was issued.
+    # This ensures the same sequestration data is never counted twice.
+    last_credit = mongo.db.carbon_credits.find_one(
+        {"farm_id": d["farm_id"], "status": {"$ne": "rejected"}},
+        sort=[("issued_on", -1)]
+    )
+ 
+    if last_credit:
+        # Count only NEW readings since the last credit
+        readings_since = mongo.db.sensor_readings.count_documents({
+            "farm_id":   d["farm_id"],
+            "timestamp": {"$gt": last_credit["issued_on"]}
+        })
+        if readings_since < 100:
+            return jsonify({
+                "error": (
+                    f"Not enough new sensor data since last credit "
+                    f"({last_credit['credit_id']}) issued on "
+                    f"{last_credit['issued_on'].strftime('%d %b %Y')}. "
+                    f"Found {readings_since} new readings. "
+                    f"Need at least 100 to prove new sequestration."
+                ),
+                "blocked": True,
+                "last_credit_id": last_credit["credit_id"],
+                "last_issued_on": last_credit["issued_on"].isoformat(),
+                "new_readings_found": readings_since,
+                "new_readings_required": 100
+            }), 400
+    else:
+        # First ever credit for this farm — use standard window
+        cutoff = datetime.now(timezone.utc) - timedelta(days=SENSOR_INACTIVE_DAYS)
+        recent_count = mongo.db.sensor_readings.count_documents({
+            "farm_id":   d["farm_id"],
+            "timestamp": {"$gte": cutoff}
+        })
+        if recent_count < 100:
+            return jsonify({
+                "error": (
+                    f"Cannot issue credit — insufficient sensor data. "
+                    f"Found {recent_count} readings in last {SENSOR_INACTIVE_DAYS} days. "
+                    f"Minimum 100 required."
+                ),
+                "blocked": True,
+                "readings_found": recent_count,
+                "readings_required": 100
+            }), 400
+    # ── END CHECK ────────────────────────────────────────────────
+ 
     co2   = float(d["co2_tons"])
     units = math.floor(co2)
     value = units * 500
     count = mongo.db.carbon_credits.count_documents({}) + 1
     cid   = f"CRD-{count:04d}"
-
+ 
     season_id = d.get("season_id")
-
+ 
     mongo.db.carbon_credits.insert_one({
         "credit_id":   cid,
         "farm_id":     d["farm_id"],
@@ -90,7 +126,7 @@ def issue():
     log_action("issue_credit", {"credit_id": cid, "farm_id": d["farm_id"], "co2": co2})
     return jsonify({"status": "issued", "credit_id": cid,
                     "credits": units, "co2_tons": round(co2,3), "value_inr": value}), 201
-
+ 
 @credit_bp.route("/<cid>/initiate-payment", methods=["PATCH"])
 def initiate_payment(cid):
     credit = mongo.db.carbon_credits.find_one({"credit_id": cid})
@@ -98,10 +134,10 @@ def initiate_payment(cid):
         return jsonify({"error": "Credit not found"}), 404
     if credit.get("status") != "verified":
         return jsonify({"error": "Credit must be verified before payment"}), 400
-
+ 
     farm = mongo.db.farms.find_one({"farm_id": credit["farm_id"]})
     bank = farm.get("bank_details", {}) if farm else {}
-
+ 
     mongo.db.carbon_credits.update_one(
         {"credit_id": cid},
         {"$set": {
@@ -120,7 +156,7 @@ def initiate_payment(cid):
         "bank_details": bank,
         "note": "In production this triggers automatic UPI/bank transfer via Razorpay"
     })
-
+ 
 @credit_bp.route("/<cid>/mark-paid", methods=["PATCH"])
 def mark_paid(cid):
     d = request.get_json(force=True) or {}
@@ -130,41 +166,11 @@ def mark_paid(cid):
             "payment_status": "paid",
             "payment_completed_on": datetime.now(timezone.utc),
             "transaction_id": d.get("transaction_id", f"TXN{cid}"),
-            "farmer_confirmed": False,
-            "payment_disputed": False,
         }}
     )
     log_action("mark_paid", {"credit_id": cid})
     return jsonify({"status": "paid"})
-
-@credit_bp.route("/<cid>/confirm-receipt", methods=["PATCH"])
-def confirm_receipt(cid):
-    mongo.db.carbon_credits.update_one(
-        {"credit_id": cid},
-        {"$set": {
-            "farmer_confirmed": True,
-            "farmer_confirmed_on": datetime.now(timezone.utc),
-            "payment_disputed": False,
-        }}
-    )
-    log_action("farmer_confirmed_payment", {"credit_id": cid})
-    return jsonify({"status": "confirmed"})
-
-@credit_bp.route("/<cid>/dispute-payment", methods=["PATCH"])
-def dispute_payment(cid):
-    d = request.get_json(force=True) or {}
-    mongo.db.carbon_credits.update_one(
-        {"credit_id": cid},
-        {"$set": {
-            "payment_disputed": True,
-            "dispute_reason": d.get("reason", "Payment not received"),
-            "disputed_on": datetime.now(timezone.utc),
-            "farmer_confirmed": False,
-        }}
-    )
-    log_action("payment_disputed", {"credit_id": cid, "reason": d.get("reason")})
-    return jsonify({"status": "disputed"})
-
+ 
 @credit_bp.route("/farmer-summary/<farm_id>", methods=["GET"])
 def farmer_summary(farm_id):
     pipeline = [
@@ -183,7 +189,7 @@ def farmer_summary(farm_id):
         "payment_status": "paid"
     }, {"_id": 0, "credit_id": 1, "value_inr": 1, "payment_completed_on": 1}))
     return jsonify({"summary": rows, "paid_credits": paid})
-
+ 
 @credit_bp.route("/<cid>/verify", methods=["PATCH"])
 def verify(cid):
     mongo.db.carbon_credits.update_one(
@@ -192,7 +198,7 @@ def verify(cid):
     )
     log_action("verify_credit", {"credit_id": cid})
     return jsonify({"status": "verified"})
-
+ 
 @credit_bp.route("/<cid>/reject", methods=["PATCH"])
 def reject(cid):
     reason = (request.get_json(force=True) or {}).get("reason", "")
@@ -203,3 +209,4 @@ def reject(cid):
     )
     log_action("reject_credit", {"credit_id": cid, "reason": reason})
     return jsonify({"status": "rejected"})
+ 
