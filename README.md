@@ -1,4 +1,4 @@
-# 🌿 GreenLedger — AI-Based Carbon Credit Monitoring System
+# GreenLedger — AI-Based Carbon Credit Monitoring System
 
 > BTech Final Year Project | Vishwakarma Institute of Technology, Pune  
 > Guide: Prof. Prachi Kamlesh Sorte
