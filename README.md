@@ -176,7 +176,7 @@ Find your laptop IP: run `ipconfig` on Windows, look for IPv4 Address.
 | Name | Role |
 |------|------|
 | Ram Sunil Rajurkar | AI model |
-| Chirag Mahavir Kochar | Frontend dashboard |
+| Chirag Kochar | Frontend dashboard |
 | Atharva Satish Gaikwad | ESP8266 firmware + hardware + Backend + Database |
 | Prem Mangesh Palhade | Deployment + App Development |
 
