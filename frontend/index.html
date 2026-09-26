@@ -386,7 +386,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 </div>
 <script>
 /* ─── Config ─── */
-const API='https://greenledger-production-9c15.up.railway.app/api';
+const API='https://greenledger-api-tzkg.onrender.com/api';
 const MONTHS=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 const COLORS=['#66bb6a','#42a5f5','#26c6da','#ffca28','#ef5350','#ab47bc','#ff7043','#26a69a','#ec407a'];
 const PAGE_META={
@@ -903,7 +903,7 @@ async function loadRegistrations(status='pending'){
   el.innerHTML=data.map(a=>{
     const dt=a.applied_on?new Date(a.applied_on).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
     const docs=a.documents||{};
-    const imgUrl=(field)=>docs[field]?`https://greenledger-production-9c15.up.railway.app/${docs[field]}`:'';
+    const imgUrl=(field)=>docs[field]?`https://greenledger-api-tzkg.onrender.com/${docs[field]}`:'';
     const actions=a.status==='pending'?`
       <button class="btn btnsm btnp" onclick="approveReg('${a.application_id}',${a.phone_verified})">✓ Approve</button>
       <button class="btn btnsm" style="color:var(--r4);border-color:var(--r4)" onclick="rejectReg('${a.application_id}')">✗ Reject</button>`
