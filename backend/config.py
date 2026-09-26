@@ -6,8 +6,7 @@ MODE = os.getenv("MODE", "production")
 
 # ── Database ──────────────────────────────────────────
 MONGO_URI_DEV  = "mongodb://localhost:27017/greenledger"
-MONGO_URI_PROD = os.getenv("MONGO_URI", "mongodb+srv://greenledger:greenledger2025@greenledger.4bdteyn.mongodb.net/greenledger?retryWrites=true&w=majority&appName=greenledger")
-
+MONGO_URI_PROD = os.getenv("MONGO_URI")
 MONGO_URI = MONGO_URI_PROD if MODE == "production" else MONGO_URI_DEV
 
 # ── API URL (used by frontend + app) ─────────────────

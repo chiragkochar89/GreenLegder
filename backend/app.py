@@ -42,10 +42,8 @@ def health():
     try:
         mongo.db.command("ping")
         db_status = "connected"
-    except Exception:
+        print("MongoDB ping: SUCCESS")
+    except Exception as e:
         db_status = "disconnected"
+        print(f"MongoDB ping ERROR: {type(e).__name__}: {e}")
     return jsonify({"api": "ok", "database": db_status})
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
