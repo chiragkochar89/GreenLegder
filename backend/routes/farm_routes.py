@@ -17,6 +17,40 @@ def _ser(doc):
 def list_farms():
     return jsonify([_ser(d) for d in mongo.db.farms.find({"active": True})])
 
+@farm_bp.route("/", methods=["POST"])
+def create_farm():
+    d = request.get_json(force=True)
+
+    farm_id = d.get("farm_id")
+    if not farm_id:
+        return jsonify({"error": "farm_id is required"}), 400
+
+    if mongo.db.farms.find_one({"farm_id": farm_id}):
+        return jsonify({"error": "Farm ID already exists"}), 409
+
+    farm = {
+        "farm_id": farm_id,
+        "farmer_name": d.get("farmer_name", ""),
+        "phone": d.get("phone", ""),
+        "location": d.get("location", ""),
+        "district": d.get("district", ""),
+        "area_hectares": float(d.get("area_hectares", 0)),
+        "crop": d.get("crop", ""),
+        "practice": d.get("practice", ""),
+        "soil_organic_carbon": float(d.get("soil_organic_carbon", 0)),
+        "ndvi": float(d.get("ndvi", 0)),
+        "device_id": d.get("device_id", ""),
+        "active": True,
+        "registered_on": datetime.now(timezone.utc)
+    }
+
+    mongo.db.farms.insert_one(farm)
+
+    return jsonify({
+        "status": "created",
+        "farm": _ser(farm)
+    }), 201
+
 @farm_bp.route("/<fid>", methods=["GET"])
 def get_farm(fid):
     doc = mongo.db.farms.find_one({"farm_id": fid})
