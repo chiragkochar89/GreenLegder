@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'https://greenledger-production-9c15.up.railway.app/api';
+const API_BASE = 'https://greenledger-api-tzkg.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_BASE,

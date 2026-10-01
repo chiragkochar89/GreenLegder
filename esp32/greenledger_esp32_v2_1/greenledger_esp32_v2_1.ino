@@ -29,18 +29,18 @@
 #include <DHT.h>
 
 /* ════ CHANGE THESE ══════════════════════════════════════ */
-const char* WIFI_SSID     = "Aths";
-const char* WIFI_PASSWORD = "s27gb9yu";
+const char* WIFI_SSID     = "Chirag";
+const char* WIFI_PASSWORD = "11111111";
 
 // Use local backend while testing on laptop:
 //const char* API_URL = "http://192.168.1.8:5000/api/sensors/data";
 
 // Switch to this when using Railway:
-const char* API_URL = "https://greenledger-production-9c15.up.railway.app/api/sensors/data";
+const char* API_URL = "https://greenledger-api-tzkg.onrender.com/api/sensors/data";
 
-const char* FARM_ID      = "F-13";
+const char* FARM_ID      = "F-01";
 const char* DEVICE_ID    = "GL-F01";
-const char* DEVICE_TOKEN = "gl-f-13-ygc08dn6";
+const char* DEVICE_TOKEN = "gl-f01-a3f9c2e1";
 
 const unsigned long SEND_INTERVAL = 30000UL; // 30 seconds
 /* ════════════════════════════════════════════════════════ */
